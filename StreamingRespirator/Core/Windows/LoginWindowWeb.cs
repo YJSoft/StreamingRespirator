@@ -5,6 +5,7 @@ using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using CefSharp.WinForms;
 using mshtml;
 using Sentry;
 using StreamingRespirator.Core.Streaming;
@@ -17,7 +18,7 @@ namespace StreamingRespirator.Core.Windows
         static readonly Uri TwitterUri = new Uri("https://twitter.com/");
 
         private Label m_label;
-        private WebBrowser m_webBrowser;
+        private ChromiumWebBrowser m_webBrowser;
         private SHDocVw.WebBrowser m_webBrowserSh;
 
         public TwitterCredential TwitterCredential { get; private set; }
@@ -32,6 +33,7 @@ namespace StreamingRespirator.Core.Windows
         {
             this.SuspendLayout();
 
+            /*
             this.m_webBrowser = new WebBrowser
             {
                 AllowWebBrowserDrop = false,
@@ -41,6 +43,11 @@ namespace StreamingRespirator.Core.Windows
                 ScrollBarsEnabled = false,
                 Visible = false
             };
+            */
+            this.m_webBrowser = new ChromiumWebBrowser("www.google.com");
+            this.m_webBrowser.Dock = DockStyle.Fill;
+            this.m_webBrowser.Visible = false;
+            this.m_webBrowser.AllowDrop = false;
 
             this.m_webBrowser.PreviewKeyDown += this.webBrowser_PreviewKeyDown;
             this.m_webBrowser.DocumentCompleted += new WebBrowserDocumentCompletedEventHandler(this.ctlWeb_DocumentCompleted);
@@ -113,7 +120,7 @@ namespace StreamingRespirator.Core.Windows
         protected override void OnLoad(EventArgs e)
         {
             base.OnLoad(e);
-
+            /*
             this.m_webBrowserSh = (SHDocVw.WebBrowser)this.m_webBrowser.ActiveXInstance;
 
             this.m_webBrowserSh.Resizable = false;
@@ -125,9 +132,10 @@ namespace StreamingRespirator.Core.Windows
             this.m_webBrowserSh.RegisterAsBrowser = false;
             this.m_webBrowserSh.RegisterAsDropTarget = false;
             this.m_webBrowserSh.AddressBar = false;
+            */
 
             NativeMethods.SetCookieSupressBehavior();
-            this.m_webBrowser.Navigate("https://mobile.twitter.com/login?redirect_after_login=https%3A%2F%2Ftwitter.com%2F");
+            this.m_webBrowser.GetBrowser().MainFrame.LoadUrl("https://twitter.com/login");
         }
 
         protected override void OnGotFocus(EventArgs e)
@@ -150,7 +158,7 @@ namespace StreamingRespirator.Core.Windows
 
             if (!e.Url.Host.EndsWith("twitter.com"))
             {
-                this.m_webBrowser.Navigate("https://mobile.twitter.com/login?redirect_after_login=https%3A%2F%2Ftwitter.com%2F");
+                this.m_webBrowser.GetBrowser().MainFrame.LoadUrl("https://twitter.com/login");
                 return;
             }
 
@@ -161,7 +169,7 @@ namespace StreamingRespirator.Core.Windows
 
                 this.m_logined = true;
 
-                this.m_webBrowser.Stop();
+                this.m_webBrowser.GetBrowser().StopLoad()
 
                 Task.Factory.StartNew(() =>
                 {
@@ -186,10 +194,10 @@ namespace StreamingRespirator.Core.Windows
 
                 return;
             }
-
+            /*
             try
             {
-                var doc = (HTMLDocument)this.m_webBrowser.Document.DomDocument;
+                var doc = (HTMLDocument)this.m_webBrowser.GetBrowser().MainFrame.//.Document.DomDocument;
 
                 try
                 {
@@ -283,6 +291,7 @@ namespace StreamingRespirator.Core.Windows
             {
                 SentrySdk.CaptureException(ex);
             }
+            */
 
             this.m_webBrowser.Visible = true;
         }
